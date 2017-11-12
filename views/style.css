@@ -13,7 +13,7 @@ body {
 
 header {
   width: 100%;
-  background-color: #006dc5;
+  background-color: #3176bd;
   height: 7vh;
   line-height: 7vh;
 }
@@ -25,7 +25,7 @@ header {
 }
 
 sidebar {
-  background-color: #2c3140;
+  background-color: #3d3d3d;
   width: 4%;
 }
 
@@ -127,4 +127,8 @@ input {
   height: 5.4vh;
   font-size: 2.3vh;
   position: absolute;
+}
+
+.wifi-hotspots {
+  display: none;
 }
