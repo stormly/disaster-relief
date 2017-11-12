@@ -1,59 +1,82 @@
-// Dependences
 const express = require("express");
-const logger = require("morgan");
+const socketIO = require("socket.io");
 const path = require("path");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+console.log("Starting server!");
 
-const app = express();
-app.use(cors());
+// let roomsInfo = {};
+// let savedMessages = {};
 
 const PORT = process.env.PORT || 3000;
+const INDEX = path.join(__dirname, "index.html");
 
-// Port for listening
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+const server = express()
+  // .use((req, res) => res.sendFile(INDEX))
+  .use(express.static(path.join(__dirname, "public")))
+  .get("/", function(req, res) {
+    res.sendFile(INDEX);
+  })
+  .get("*", function(req, res) {
+    res.redirect("/");
+  })
+  .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-// Body Parser
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+const io = socketIO(server);
+let numUsers = 0;
 
-// Logger
-app.use(logger("dev"));
+io.on("connection", function(socket) {
+  var addedUser = false;
 
-// view templates
-app.set("views", path.join(__dirname, "views"));
-// templating engine
-app.set("view engine", "ejs");
+  // when the client emits 'new message', this listens and executes
+  socket.on("new message", function(data) {
+    // we tell the client to execute 'new message'
+    socket.broadcast.emit("new message", {
+      username: socket.username,
+      message: data,
+    });
+  });
 
-app.use("/static", express.static(path.join(__dirname, "public")));
-//  index route!
-app.get("/", (req, res) => {
-  res.render("index");
-});
+  // when the client emits 'add user', this listens and executes
+  socket.on("add user", function(username) {
+    if (addedUser) return;
 
-// User input from REACT
-// Converting UserInput information to Latitude and Longitude
-// Darkapi json data
+    // we store the username in the socket session for this client
+    socket.username = username;
+    ++numUsers;
+    addedUser = true;
+    socket.emit("login", {
+      numUsers: numUsers,
+    });
+    // echo globally (all clients) that a person has connected
+    socket.broadcast.emit("user joined", {
+      username: socket.username,
+      numUsers: numUsers,
+    });
+  });
 
-// const geocodeApi = require("./services/geocoding");
-// const googlePlaceAutocomplete = require("./services/googlePlaceAutocomplete");
-// const skyHelpers = require("./services/skyHelpers");
+  // when the client emits 'typing', we broadcast it to others
+  socket.on("typing", function() {
+    socket.broadcast.emit("typing", {
+      username: socket.username,
+    });
+  });
 
-// app.post("/googleplaces/", googlePlaceAutocomplete, function(req, res) {
-//   console.log("res.locals.places: ", res.locals.places);
-//   res.json(res.locals);
-// });
+  // when the client emits 'stop typing', we broadcast it to others
+  socket.on("stop typing", function() {
+    socket.broadcast.emit("stop typing", {
+      username: socket.username,
+    });
+  });
 
-// app.post("/", geocodeApi, skyHelpers, (req, res) => {
-//   console.log("FRONT REACT DATa :", req.body.userInput);
-//   console.log(`JSON FORMAT DATA JASON FORMAT DATA`, res.locals.data);
-//   console.log(`LOCation DATA LOCATION DATA`, res.locals.name);
-//   res.json(res.locals);
-// });
+  // when the user disconnects.. perform this
+  socket.on("disconnect", function() {
+    if (addedUser) {
+      --numUsers;
 
-// Error message
-app.get("*", (req, res) => {
-  res.status(404).json({ message: "Not Found" });
+      // echo globally that this client has left
+      socket.broadcast.emit("user left", {
+        username: socket.username,
+        numUsers: numUsers,
+      });
+    }
+  });
 });

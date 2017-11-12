@@ -1,36 +1,16 @@
 {
-  "name": "disaster-relief",
+  "name": "cunyhackathon",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "nodemon server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --inspect server.js",
-    "start": "node server.js",
-    "debugger": "DEBUG=*:* npm run dev"
+    "start": "nodemon server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/stormly/disaster-relief.git"
-  },
-  "author": "Stormly",
+  "author": "Muhammad Usman",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.2",
-    "cors": "^2.8.4",
-    "dotenv": "^4.0.0",
     "express": "^4.16.2",
-    "isomorphic-fetch": "^2.2.1",
-    "logger": "0.0.1",
-    "morgan": "^1.9.0",
-    "path": "^0.12.7",
-    "ejs": "^2.5.6"
-  },
-  "devDependencies": {
-    "nodemon": "^1.12.1"
-  },
-  "bugs": {
-    "url": "https://github.com/stormly/disaster-relief/issues"
-  },
-  "homepage": "https://github.com/stormly/disaster-relief#readme"
+    "socket.io": "^2.0.4"
+  }
 }
