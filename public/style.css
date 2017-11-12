@@ -20,7 +20,7 @@ header {
 
 header img {
   position: absolute;
-  left: 1vh;
+  left: 2vh;
   height: 6%;
   top: 0.5%;
 }
@@ -159,4 +159,8 @@ button {
 .login,
 .chat {
   height: 95%;
+}
+
+.charts-container img {
+  height: 88vh;
 }

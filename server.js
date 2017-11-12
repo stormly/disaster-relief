@@ -1,13 +1,12 @@
 const express = require("express");
 const socketIO = require("socket.io");
 const path = require("path");
-console.log("Starting server!");
 
-// let roomsInfo = {};
-// let savedMessages = {};
+console.log("Starting server!");
 
 const PORT = process.env.PORT || 3000;
 const INDEX = path.join(__dirname, "index.html");
+require("dotenv").config();
 
 const server = express()
   // .use((req, res) => res.sendFile(INDEX))
@@ -20,14 +19,60 @@ const server = express()
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
+const watson = require("watson-developer-cloud");
+const api_userName = process.env.api_username;
+console.log("api_user", api_userName);
+
+const api_password = process.env.api_password;
+var tone_analyzer = watson.tone_analyzer({
+  username: api_userName,
+  password: api_password,
+  version: "v3",
+  version_date: "2016-05-19",
+});
+
 const io = socketIO(server);
 let numUsers = 0;
+let savedMsgArr = [];
+
+function saveMessages(message, username) {
+  if (savedMsgArr.length > 10) {
+    savedMsgArr.shift();
+  }
+  savedMsgArr.push({ username: message });
+}
 
 io.on("connection", function(socket) {
   var addedUser = false;
 
+  function getMood(text) {
+    console.log("working");
+
+    tone_analyzer.tone(
+      {
+        text: text,
+      },
+      function(err, tone) {
+        if (err) {
+          console.log("error!!!!!!!!!!!!");
+
+          return err;
+        } else {
+            console.log('working sending data');
+            
+          socket.broadcast.emit("new tone analyzer data", {
+            toneData: tone,
+          });
+        }
+      }
+    );
+  }
+
   // when the client emits 'new message', this listens and executes
   socket.on("new message", function(data) {
+    saveMessages(data, socket.username);
+    console.log("dtata:", data);
+    // getMood(data);
     // we tell the client to execute 'new message'
     socket.broadcast.emit("new message", {
       username: socket.username,
